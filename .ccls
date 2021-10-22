@@ -1,0 +1,6 @@
+%cpp -std=gnu++17
+%c -std=gnu11
+-I/home/aamaruvi/git/Ndless/ndless-sdk/include
+-D__TINSPIRE__
+-Wall
+-pedantic
