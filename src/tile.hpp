@@ -15,5 +15,9 @@ class Tile {
 
 public:
   tile_state_t state;
-  Tile() { state = TILE_STATE_AIR; }
+  bool revealed;
+  Tile() {
+    state = TILE_STATE_AIR;
+    revealed = false;
+  }
 };

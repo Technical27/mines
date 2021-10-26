@@ -13,61 +13,17 @@ int main(void) {
   SDL_Event event;
   bool done = false;
 
-  board.draw();
-  SDL_Flip(screen);
-  while (!done) {
-    /* if (isKeyPressed(KEY_NSPIRE_MENU)) { */
-    /*   break; */
-    /* } */
-
-    /* if (key_held) { */
-    /*   key_held = */
-    /*       isKeyPressed(KEY_NSPIRE_UPRIGHT) || isKeyPressed(KEY_NSPIRE_LEFTUP)
-     * || */
-    /*       isKeyPressed(KEY_NSPIRE_DOWNLEFT) || */
-    /*       isKeyPressed(KEY_NSPIRE_RIGHTDOWN) || */
-    /*       isKeyPressed(KEY_NSPIRE_RIGHT) || isKeyPressed(KEY_NSPIRE_LEFT) ||
-     */
-    /*       isKeyPressed(KEY_NSPIRE_UP) || isKeyPressed(KEY_NSPIRE_DOWN) || */
-    /*       isKeyPressed(KEY_NSPIRE_8) || isKeyPressed(KEY_NSPIRE_4) || */
-    /*       isKeyPressed(KEY_NSPIRE_5) || isKeyPressed(KEY_NSPIRE_6); */
-    /* } else if (isKeyPressed(KEY_NSPIRE_UPRIGHT)) { */
-    /*   board.moveUp(); */
-    /*   board.moveRight(); */
-    /*   key_held = true; */
-    /* } else if (isKeyPressed(KEY_NSPIRE_LEFTUP)) { */
-    /*   board.moveUp(); */
-    /*   board.moveLeft(); */
-    /*   key_held = true; */
-    /* } else if (isKeyPressed(KEY_NSPIRE_DOWNLEFT)) { */
-    /*   board.moveDown(); */
-    /*   board.moveLeft(); */
-    /*   key_held = true; */
-    /* } else if (isKeyPressed(KEY_NSPIRE_RIGHTDOWN)) { */
-    /*   board.moveDown(); */
-    /*   board.moveRight(); */
-    /*   key_held = true; */
-    /* } else if (isKeyPressed(KEY_NSPIRE_LEFT) || isKeyPressed(KEY_NSPIRE_4)) {
-     */
-    /*   board.moveLeft(); */
-    /*   key_held = true; */
-    /* } else if (isKeyPressed(KEY_NSPIRE_RIGHT) || isKeyPressed(KEY_NSPIRE_6))
-     * { */
-    /*   board.moveRight(); */
-    /*   key_held = true; */
-    /* } else if (isKeyPressed(KEY_NSPIRE_UP) || isKeyPressed(KEY_NSPIRE_8)) {
-     */
-    /*   board.moveUp(); */
-    /*   key_held = true; */
-    /* } else if (isKeyPressed(KEY_NSPIRE_DOWN) || isKeyPressed(KEY_NSPIRE_5)) {
-     */
-    /*   board.moveDown(); */
-    /*   key_held = true; */
-    /* } */
-
+  while (board.state == BOARD_NORMAL && !done) {
     while (SDL_PollEvent(&event)) {
       if (event.type == SDL_KEYDOWN) {
         switch (event.key.keysym.sym) {
+        case SDLK_KP_ENTER:
+        case SDLK_RETURN:
+          board.reveal();
+          break;
+        case SDLK_ESCAPE:
+          done = true;
+          break;
         case SDLK_DOWN:
         case SDLK_5:
           board.moveDown();
@@ -84,6 +40,28 @@ int main(void) {
         case SDLK_6:
           board.moveRight();
           break;
+        default:
+          break;
+        }
+      }
+    }
+
+    board.draw();
+    SDL_Flip(screen);
+
+    SDL_Delay(50);
+  }
+
+  if (board.state != BOARD_NORMAL) {
+    board.draw();
+    SDL_Flip(screen);
+    done = false;
+    while (!done) {
+      SDL_WaitEvent(&event);
+      if (event.type == SDL_KEYDOWN) {
+        switch (event.key.keysym.sym) {
+        case SDLK_KP_ENTER:
+        case SDLK_RETURN:
         case SDLK_ESCAPE:
           done = true;
           break;
@@ -92,9 +70,6 @@ int main(void) {
         }
       }
     }
-    SDL_FillRect(screen, nullptr, 0);
-    board.draw();
-    SDL_Flip(screen);
   }
 
   SDL_Quit();
