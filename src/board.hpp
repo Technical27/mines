@@ -22,6 +22,16 @@ private:
   int cursorX = 0;
   int cursorY = 0;
 
+  uint32_t backgroundColor;
+  uint32_t boardColor;
+  uint32_t lineColor;
+
+  uint32_t cursorColor;
+
+  uint32_t loseColor;
+  uint32_t winColor;
+  uint32_t revealedTileColor;
+
   std::vector<std::vector<Tile>> tiles;
   std::vector<SDL_Surface *> tileSurfaces;
 
@@ -41,6 +51,8 @@ public:
   void draw();
 
   void reveal();
+
+  void flag();
 
   void moveLeft();
   void moveRight();

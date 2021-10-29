@@ -1,13 +1,14 @@
+#define DEFINE_IMAGES
 #include "board.hpp"
 #include <chrono>
 #include <cstdlib>
 
 static const char *TITLE = "Minesweeper";
 
-static const int MINE_COUNT = 4;
+static const int MINE_COUNT = 16;
 
-static const int BOARD_WIDTH = 13;
-static const int BOARD_HEIGHT = 10;
+static const int BOARD_WIDTH = 12;
+static const int BOARD_HEIGHT = 9;
 
 static const int TILE_SIZE = 24;
 
@@ -79,6 +80,15 @@ Board::Board(SDL_Surface *scr) {
   screen = scr;
   font = nSDL_LoadFont(NSDL_FONT_TINYTYPE, 29, 43, 61);
 
+  backgroundColor = SDL_MapRGB(screen->format, 184, 200, 222);
+  boardColor = SDL_MapRGB(screen->format, 160, 160, 180);
+  lineColor = SDL_MapRGB(screen->format, 140, 140, 160);
+
+  loseColor = SDL_MapRGB(screen->format, 200, 0, 0);
+  winColor = SDL_MapRGB(screen->format, 0, 200, 0);
+  revealedTileColor = SDL_MapRGB(screen->format, 200, 200, 220);
+  cursorColor = SDL_MapRGB(screen->format, 100, 100, 100);
+
   tileSurfaces.reserve(8);
   tileSurfaces.push_back(loadTile(image_tile_1));
   tileSurfaces.push_back(loadTile(image_tile_2));
@@ -89,6 +99,7 @@ Board::Board(SDL_Surface *scr) {
   tileSurfaces.push_back(loadTile(image_tile_7));
   tileSurfaces.push_back(loadTile(image_tile_8));
   tileSurfaces.push_back(loadTile(image_tile_mine));
+  tileSurfaces.push_back(loadTile(image_tile_flag));
 
   boardRect.x = (screen->w - (BOARD_WIDTH * TILE_SIZE)) / 2;
   boardRect.y = (screen->h - (BOARD_HEIGHT * TILE_SIZE)) / 2;
@@ -186,10 +197,10 @@ static void drawRectOutline(SDL_Surface *screen, SDL_Rect rect, int w,
 
 void Board::draw() {
   // Fill in background
-  SDL_FillRect(screen, nullptr, SDL_MapRGB(screen->format, 184, 200, 222));
+  SDL_FillRect(screen, nullptr, backgroundColor);
 
   // Fill in the background of the main board
-  SDL_FillRect(screen, &boardRect, SDL_MapRGB(screen->format, 160, 160, 180));
+  SDL_FillRect(screen, &boardRect, boardColor);
 
   // Draw and center the title
   /* nSDL_DrawString(screen, font, titleWidth, 10, TITLE); */
@@ -208,23 +219,23 @@ void Board::draw() {
   for (int i = 0; i < BOARD_HEIGHT; i++) {
     for (int j = 0; j < BOARD_WIDTH; j++) {
       auto tile = tiles[i][j];
-      if (state != BOARD_NORMAL || tile.revealed) {
+      if (state != BOARD_NORMAL || tile.revealed || tile.flagged) {
         tileRect.x = (boardRect.x + ((boardRect.w / BOARD_WIDTH) * j));
         tileRect.y = (boardRect.y + ((boardRect.h / BOARD_HEIGHT) * i));
 
-        if (state == BOARD_LOSE && tile.state == TILE_STATE_MINE &&
-            tile.revealed) {
-          SDL_FillRect(screen, &tileRect,
-                       SDL_MapRGB(screen->format, 200, 0, 0));
+        if (state == BOARD_LOSE &&
+            ((tile.state == TILE_STATE_MINE && tile.revealed) ||
+             (tile.flagged && tile.state != TILE_STATE_MINE))) {
+          SDL_FillRect(screen, &tileRect, loseColor);
         } else if (state == BOARD_WIN && tile.state == TILE_STATE_MINE) {
-          SDL_FillRect(screen, &tileRect,
-                       SDL_MapRGB(screen->format, 0, 200, 0));
-        } else {
-          SDL_FillRect(screen, &tileRect,
-                       SDL_MapRGB(screen->format, 200, 200, 220));
+          SDL_FillRect(screen, &tileRect, winColor);
+        } else if (!tile.flagged) {
+          SDL_FillRect(screen, &tileRect, revealedTileColor);
         }
 
-        if (tile.state != TILE_STATE_AIR) {
+        if (tile.flagged) {
+          SDL_BlitSurface(tileSurfaces[9], &imgRect, screen, &tileRect);
+        } else if (tile.state != TILE_STATE_AIR) {
           SDL_BlitSurface(tileSurfaces[tile.state], &imgRect, screen,
                           &tileRect);
         }
@@ -234,26 +245,22 @@ void Board::draw() {
 
   // Draw vertical lines
   for (int i = 0; i < BOARD_HEIGHT - 1; i++) {
-    SDL_FillRect(screen, &verticalLines[i],
-                 SDL_MapRGB(screen->format, 140, 140, 160));
+    SDL_FillRect(screen, &verticalLines[i], lineColor);
   }
 
   // Draw horizontal lines
   for (int i = 0; i < BOARD_WIDTH - 1; i++) {
-    SDL_FillRect(screen, &horizontalLines[i],
-                 SDL_MapRGB(screen->format, 140, 140, 160));
+    SDL_FillRect(screen, &horizontalLines[i], lineColor);
   }
 
   // Draw the borders
-  drawRectOutline(screen, boardRect, 3,
-                  SDL_MapRGB(screen->format, 140, 140, 160));
+  drawRectOutline(screen, boardRect, 3, lineColor);
 
   if (state == BOARD_NORMAL) {
     // Draw the "cursor"
     cursorRect.x = (boardRect.x + ((boardRect.w / BOARD_WIDTH) * cursorX));
     cursorRect.y = (boardRect.y + ((boardRect.h / BOARD_HEIGHT) * cursorY));
-    drawRectOutline(screen, cursorRect, 3,
-                    SDL_MapRGB(screen->format, 100, 100, 100));
+    drawRectOutline(screen, cursorRect, 3, cursorColor);
   }
 }
 
@@ -281,7 +288,7 @@ void Board::moveDown() {
 bool Board::revealTile(int x, int y) {
   auto &tile = tiles[y][x];
 
-  if (tile.revealed)
+  if (tile.revealed || tile.flagged)
     return false;
 
   revealedTiles++;
@@ -318,8 +325,19 @@ void Board::reveal() {
   if (revealTile(cursorX, cursorY)) {
     state = BOARD_LOSE;
   } else if ((BOARD_WIDTH * BOARD_HEIGHT) - revealedTiles <= MINE_COUNT) {
+    // I have no idea why this needs to be a greater than instead of just an
+    // equal.
     state = BOARD_WIN;
   }
+}
+
+void Board::flag() {
+  auto &tile = tiles[cursorY][cursorX];
+
+  if (tile.revealed)
+    return;
+
+  tile.flagged = !tile.flagged;
 }
 
 Board::~Board() {

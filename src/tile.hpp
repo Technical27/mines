@@ -16,6 +16,7 @@ class Tile {
 public:
   tile_state_t state;
   bool revealed;
+  bool flagged;
   Tile() {
     state = TILE_STATE_AIR;
     revealed = false;

@@ -30,7 +30,7 @@ all: $(EXE).tns
 	$(GCC) $(GCCFLAGS) -c $< -o $@
 
 %.o: %.cpp
-	$(GXX) $(GCCFLAGS) -c $< -o $@
+	$(GXX) -std=gnu++17 $(GCCFLAGS) -c $< -o $@
 
 %.o: %.S
 	$(AS) -c $< -o $@

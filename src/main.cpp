@@ -10,40 +10,60 @@ int main(void) {
 
   Board board(screen);
 
-  SDL_Event event;
   bool done = false;
+  bool keyHeld = false;
 
   while (board.state == BOARD_NORMAL && !done) {
-    while (SDL_PollEvent(&event)) {
-      if (event.type == SDL_KEYDOWN) {
-        switch (event.key.keysym.sym) {
-        case SDLK_KP_ENTER:
-        case SDLK_RETURN:
-          board.reveal();
-          break;
-        case SDLK_ESCAPE:
-          done = true;
-          break;
-        case SDLK_DOWN:
-        case SDLK_5:
-          board.moveDown();
-          break;
-        case SDLK_UP:
-        case SDLK_8:
-          board.moveUp();
-          break;
-        case SDLK_LEFT:
-        case SDLK_4:
-          board.moveLeft();
-          break;
-        case SDLK_RIGHT:
-        case SDLK_6:
-          board.moveRight();
-          break;
-        default:
-          break;
-        }
-      }
+    // This horrible hack is necessary to not have keys repeat.
+    if (keyHeld) {
+      keyHeld = isKeyPressed(KEY_NSPIRE_ESC) || isKeyPressed(KEY_NSPIRE_UP) ||
+                isKeyPressed(KEY_NSPIRE_SCRATCHPAD) ||
+                isKeyPressed(KEY_NSPIRE_VAR) || isKeyPressed(KEY_NSPIRE_DEL) ||
+                isKeyPressed(KEY_NSPIRE_DOWN) || isKeyPressed(KEY_NSPIRE_5) ||
+                isKeyPressed(KEY_NSPIRE_8) || isKeyPressed(KEY_NSPIRE_LEFT) ||
+                isKeyPressed(KEY_NSPIRE_4) || isKeyPressed(KEY_NSPIRE_RIGHT) ||
+                isKeyPressed(KEY_NSPIRE_6) ||
+                isKeyPressed(KEY_NSPIRE_DOWNLEFT) ||
+                isKeyPressed(KEY_NSPIRE_LEFTUP) ||
+                isKeyPressed(KEY_NSPIRE_RIGHTDOWN) ||
+                isKeyPressed(KEY_NSPIRE_UPRIGHT);
+    } else if (isKeyPressed(KEY_NSPIRE_ESC)) {
+      done = true;
+    } else if (isKeyPressed(KEY_NSPIRE_DEL) || isKeyPressed(KEY_NSPIRE_CLICK)) {
+      board.reveal();
+      keyHeld = true;
+    } else if (isKeyPressed(KEY_NSPIRE_SCRATCHPAD) ||
+               isKeyPressed(KEY_NSPIRE_VAR)) {
+      board.flag();
+      keyHeld = true;
+    } else if (isKeyPressed(KEY_NSPIRE_DOWN) || isKeyPressed(KEY_NSPIRE_5)) {
+      board.moveDown();
+      keyHeld = true;
+    } else if (isKeyPressed(KEY_NSPIRE_UP) || isKeyPressed(KEY_NSPIRE_8)) {
+      board.moveUp();
+      keyHeld = true;
+    } else if (isKeyPressed(KEY_NSPIRE_LEFT) || isKeyPressed(KEY_NSPIRE_4)) {
+      board.moveLeft();
+      keyHeld = true;
+    } else if (isKeyPressed(KEY_NSPIRE_RIGHT) || isKeyPressed(KEY_NSPIRE_6)) {
+      board.moveRight();
+      keyHeld = true;
+    } else if (isKeyPressed(KEY_NSPIRE_DOWNLEFT)) {
+      board.moveDown();
+      board.moveLeft();
+      keyHeld = true;
+    } else if (isKeyPressed(KEY_NSPIRE_LEFTUP)) {
+      board.moveUp();
+      board.moveLeft();
+      keyHeld = true;
+    } else if (isKeyPressed(KEY_NSPIRE_RIGHTDOWN)) {
+      board.moveDown();
+      board.moveRight();
+      keyHeld = true;
+    } else if (isKeyPressed(KEY_NSPIRE_UPRIGHT)) {
+      board.moveUp();
+      board.moveRight();
+      keyHeld = true;
     }
 
     board.draw();
@@ -55,19 +75,14 @@ int main(void) {
   if (board.state != BOARD_NORMAL) {
     board.draw();
     SDL_Flip(screen);
-    done = false;
-    while (!done) {
-      SDL_WaitEvent(&event);
-      if (event.type == SDL_KEYDOWN) {
-        switch (event.key.keysym.sym) {
-        case SDLK_KP_ENTER:
-        case SDLK_RETURN:
-        case SDLK_ESCAPE:
-          done = true;
-          break;
-        default:
-          break;
-        }
+    while (true) {
+      if (keyHeld) {
+        keyHeld = isKeyPressed(KEY_NSPIRE_ESC) ||
+                  isKeyPressed(KEY_NSPIRE_DEL) ||
+                  isKeyPressed(KEY_NSPIRE_CLICK);
+      } else if (isKeyPressed(KEY_NSPIRE_ESC) || isKeyPressed(KEY_NSPIRE_DEL) ||
+                 isKeyPressed(KEY_NSPIRE_CLICK)) {
+        break;
       }
     }
   }
