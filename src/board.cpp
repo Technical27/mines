@@ -80,14 +80,15 @@ Board::Board(SDL_Surface *scr) {
   screen = scr;
   font = nSDL_LoadFont(NSDL_FONT_TINYTYPE, 29, 43, 61);
 
-  backgroundColor = SDL_MapRGB(screen->format, 184, 200, 222);
-  boardColor = SDL_MapRGB(screen->format, 160, 160, 180);
-  lineColor = SDL_MapRGB(screen->format, 140, 140, 160);
+  SDL_PixelFormat *fmt = screen->format;
+  backgroundColor = SDL_MapRGB(fmt, 184, 200, 222);
+  boardColor = SDL_MapRGB(fmt, 160, 160, 180);
+  lineColor = SDL_MapRGB(fmt, 140, 140, 160);
 
-  loseColor = SDL_MapRGB(screen->format, 200, 0, 0);
-  winColor = SDL_MapRGB(screen->format, 0, 200, 0);
-  revealedTileColor = SDL_MapRGB(screen->format, 200, 200, 220);
-  cursorColor = SDL_MapRGB(screen->format, 100, 100, 100);
+  loseColor = SDL_MapRGB(fmt, 200, 0, 0);
+  winColor = SDL_MapRGB(fmt, 0, 200, 0);
+  revealedTileColor = SDL_MapRGB(fmt, 200, 200, 220);
+  cursorColor = SDL_MapRGB(fmt, 100, 100, 100);
 
   tileSurfaces.reserve(8);
   tileSurfaces.push_back(loadTile(image_tile_1));
