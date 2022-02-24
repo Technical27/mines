@@ -1,16 +1,12 @@
-#define DEFINE_IMAGES
 #include "board.hpp"
 #include <chrono>
-#include <cstdlib>
-
-static const char *TITLE = "Minesweeper";
-
-static const int MINE_COUNT = 16;
-
-static const int BOARD_WIDTH = 12;
-static const int BOARD_HEIGHT = 9;
 
 static const int TILE_SIZE = 24;
+
+// These need to be options at some point
+static const int MINE_COUNT = 16;
+static const int BOARD_WIDTH = 12;
+static const int BOARD_HEIGHT = 9;
 
 void Board::incrementIfNotMine(int x, int y) {
   auto &state = tiles[y][x].state;
@@ -78,7 +74,6 @@ SDL_Surface *Board::loadTile(uint16_t *data) {
 
 Board::Board(SDL_Surface *scr) {
   screen = scr;
-  font = nSDL_LoadFont(NSDL_FONT_TINYTYPE, 29, 43, 61);
 
   SDL_PixelFormat *fmt = screen->format;
   backgroundColor = SDL_MapRGB(fmt, 184, 200, 222);
@@ -104,14 +99,11 @@ Board::Board(SDL_Surface *scr) {
 
   boardRect.x = (screen->w - (BOARD_WIDTH * TILE_SIZE)) / 2;
   boardRect.y = (screen->h - (BOARD_HEIGHT * TILE_SIZE)) / 2;
-  /* boardRect.y = ((screen->h - (BOARD_HEIGHT * TILE_SIZE)) / 2) + 10; */
   boardRect.w = BOARD_WIDTH * TILE_SIZE;
   boardRect.h = BOARD_HEIGHT * TILE_SIZE;
 
   cursorRect.w = TILE_SIZE;
   cursorRect.h = TILE_SIZE;
-
-  titleWidth = (screen->w / 2) - (nSDL_GetStringWidth(font, TITLE) / 2);
 
   verticalLines.reserve(BOARD_HEIGHT);
   for (int i = 1; i < BOARD_HEIGHT; i++) {
@@ -202,9 +194,6 @@ void Board::draw() {
 
   // Fill in the background of the main board
   SDL_FillRect(screen, &boardRect, boardColor);
-
-  // Draw and center the title
-  /* nSDL_DrawString(screen, font, titleWidth, 10, TITLE); */
 
   // Render tiles
   SDL_Rect tileRect;
@@ -326,8 +315,7 @@ void Board::reveal() {
   if (revealTile(cursorX, cursorY)) {
     state = BOARD_LOSE;
   } else if ((BOARD_WIDTH * BOARD_HEIGHT) - revealedTiles <= MINE_COUNT) {
-    // I have no idea why this needs to be a greater than instead of just an
-    // equal.
+    // Win if we have only mines left
     state = BOARD_WIN;
   }
 }
@@ -342,8 +330,6 @@ void Board::flag() {
 }
 
 Board::~Board() {
-  nSDL_FreeFont(font);
-
   for (auto &surface : tileSurfaces) {
     SDL_FreeSurface(surface);
   }

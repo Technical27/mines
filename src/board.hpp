@@ -6,18 +6,16 @@
 #include "images.hpp"
 #include "tile.hpp"
 
-typedef enum { BOARD_NORMAL, BOARD_WIN, BOARD_LOSE } BoardState;
+enum BoardState { BOARD_NORMAL, BOARD_WIN, BOARD_LOSE };
 
 class Board {
 private:
   SDL_Surface *screen;
-  nSDL_Font *font;
 
   SDL_Rect boardRect;
   SDL_Rect cursorRect;
   std::vector<SDL_Rect> verticalLines;
   std::vector<SDL_Rect> horizontalLines;
-  int titleWidth;
   int revealedTiles = 0;
   int cursorX = 0;
   int cursorY = 0;
