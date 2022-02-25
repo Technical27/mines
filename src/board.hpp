@@ -1,4 +1,5 @@
 #include <SDL/SDL.h>
+#include <chrono>
 #include <os.h>
 #include <random>
 #include <vector>
@@ -16,9 +17,9 @@ private:
   SDL_Rect cursorRect;
   std::vector<SDL_Rect> verticalLines;
   std::vector<SDL_Rect> horizontalLines;
-  int revealedTiles = 0;
-  int cursorX = 0;
-  int cursorY = 0;
+  uint8_t revealedTiles = 0;
+  uint8_t cursorX = 0;
+  uint8_t cursorY = 0;
 
   uint32_t backgroundColor;
   uint32_t boardColor;
@@ -33,12 +34,12 @@ private:
   std::vector<std::vector<Tile>> tiles;
   std::vector<SDL_Surface *> tileSurfaces;
 
-  void markTiles(int x, int y);
-  void incrementIfNotMine(int x, int y);
+  void markTiles(uint8_t x, uint8_t y);
+  void incrementIfNotMine(uint8_t x, uint8_t y);
 
   SDL_Surface *loadTile(uint16_t *data);
 
-  bool revealTile(int x, int y);
+  bool revealTile(uint8_t x, uint8_t y);
 
 public:
   Board(SDL_Surface *scr);

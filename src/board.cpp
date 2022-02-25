@@ -1,14 +1,13 @@
 #include "board.hpp"
-#include <chrono>
 
-static const int TILE_SIZE = 24;
+static const uint8_t TILE_SIZE = 24;
 
 // These need to be options at some point
-static const int MINE_COUNT = 16;
-static const int BOARD_WIDTH = 12;
-static const int BOARD_HEIGHT = 9;
+static const uint8_t MINE_COUNT = 16;
+static const uint8_t BOARD_WIDTH = 12;
+static const uint8_t BOARD_HEIGHT = 9;
 
-void Board::incrementIfNotMine(int x, int y) {
+void Board::incrementIfNotMine(uint8_t x, uint8_t y) {
   auto &state = tiles[y][x].state;
   switch (state) {
   case TILE_STATE_AIR:
@@ -41,7 +40,7 @@ void Board::incrementIfNotMine(int x, int y) {
   }
 }
 
-void Board::markTiles(int x, int y) {
+void Board::markTiles(uint8_t x, uint8_t y) {
   if (x > 0) {
     incrementIfNotMine(x - 1, y);
     if (y > 0)
@@ -106,7 +105,7 @@ Board::Board(SDL_Surface *scr) {
   cursorRect.h = TILE_SIZE;
 
   verticalLines.reserve(BOARD_HEIGHT);
-  for (int i = 1; i < BOARD_HEIGHT; i++) {
+  for (uint8_t i = 1; i < BOARD_HEIGHT; i++) {
     SDL_Rect line;
     line.y = boardRect.y + ((boardRect.h / BOARD_HEIGHT) * i);
     line.w = boardRect.w;
@@ -117,7 +116,7 @@ Board::Board(SDL_Surface *scr) {
   }
 
   horizontalLines.reserve(BOARD_WIDTH);
-  for (int i = 1; i < BOARD_WIDTH; i++) {
+  for (uint8_t i = 1; i < BOARD_WIDTH; i++) {
     SDL_Rect line;
     line.x = boardRect.x + ((boardRect.w / BOARD_WIDTH) * i);
     line.h = boardRect.h;
@@ -139,9 +138,9 @@ Board::Board(SDL_Surface *scr) {
   row.assign(BOARD_WIDTH, Tile());
   tiles.assign(BOARD_HEIGHT, row);
 
-  for (int i = 0; i < MINE_COUNT; i++) {
+  for (uint8_t i = 0; i < MINE_COUNT; i++) {
     bool duplicate = true;
-    int randX, randY;
+    uint8_t randX, randY;
 
     while (duplicate) {
       randX = widthDist(rng);
@@ -156,11 +155,11 @@ Board::Board(SDL_Surface *scr) {
 
 // Screen is 320x240
 
-static void drawRectOutline(SDL_Surface *screen, SDL_Rect rect, int w,
+static void drawRectOutline(SDL_Surface *screen, SDL_Rect rect, uint8_t w,
                             uint32_t color) {
-  int halfW = w / 2;
+  uint8_t halfW = w / 2;
 
-  int lineWidth = w - halfW;
+  uint8_t lineWidth = w - halfW;
   SDL_Rect base = rect;
   base.x = rect.x - halfW;
   base.y = rect.y - halfW;
@@ -206,8 +205,8 @@ void Board::draw() {
   imgRect.w = TILE_SIZE;
   imgRect.h = TILE_SIZE;
 
-  for (int i = 0; i < BOARD_HEIGHT; i++) {
-    for (int j = 0; j < BOARD_WIDTH; j++) {
+  for (uint8_t i = 0; i < BOARD_HEIGHT; i++) {
+    for (uint8_t j = 0; j < BOARD_WIDTH; j++) {
       auto tile = tiles[i][j];
       if (state != BOARD_NORMAL || tile.revealed || tile.flagged) {
         tileRect.x = (boardRect.x + ((boardRect.w / BOARD_WIDTH) * j));
@@ -234,12 +233,12 @@ void Board::draw() {
   }
 
   // Draw vertical lines
-  for (int i = 0; i < BOARD_HEIGHT - 1; i++) {
+  for (uint8_t i = 0; i < BOARD_HEIGHT - 1; i++) {
     SDL_FillRect(screen, &verticalLines[i], lineColor);
   }
 
   // Draw horizontal lines
-  for (int i = 0; i < BOARD_WIDTH - 1; i++) {
+  for (uint8_t i = 0; i < BOARD_WIDTH - 1; i++) {
     SDL_FillRect(screen, &horizontalLines[i], lineColor);
   }
 
@@ -275,7 +274,7 @@ void Board::moveDown() {
   }
 }
 
-bool Board::revealTile(int x, int y) {
+bool Board::revealTile(uint8_t x, uint8_t y) {
   auto &tile = tiles[y][x];
 
   if (tile.revealed || tile.flagged)
