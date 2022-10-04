@@ -4,3 +4,4 @@
 #include <os.h>
 
 #include "board.hpp"
+#include "title.hpp"

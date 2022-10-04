@@ -13,6 +13,10 @@ class Board {
 private:
   SDL_Surface *screen;
 
+  uint8_t mineCount;
+  uint8_t width;
+  uint8_t height;
+
   SDL_Rect boardRect;
   SDL_Rect cursorRect;
   std::vector<SDL_Rect> verticalLines;
@@ -42,8 +46,13 @@ private:
   bool revealTile(uint8_t x, uint8_t y);
 
 public:
-  Board(SDL_Surface *scr);
+  Board(SDL_Surface *scr, uint8_t mineCount, uint8_t w, uint8_t h);
   ~Board();
+
+  Board(Board &&) = default;
+  Board(const Board &) = default;
+  Board &operator=(Board &&) = default;
+  Board &operator=(const Board &) = default;
 
   BoardState state = BOARD_NORMAL;
 

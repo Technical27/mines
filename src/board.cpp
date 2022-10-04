@@ -2,11 +2,6 @@
 
 static const uint8_t TILE_SIZE = 24;
 
-// These need to be options at some point
-static const uint8_t MINE_COUNT = 16;
-static const uint8_t BOARD_WIDTH = 12;
-static const uint8_t BOARD_HEIGHT = 9;
-
 void Board::incrementIfNotMine(uint8_t x, uint8_t y) {
   auto &state = tiles[y][x].state;
   switch (state) {
@@ -45,22 +40,22 @@ void Board::markTiles(uint8_t x, uint8_t y) {
     incrementIfNotMine(x - 1, y);
     if (y > 0)
       incrementIfNotMine(x - 1, y - 1);
-    if (y < BOARD_HEIGHT)
+    if (y < height)
       incrementIfNotMine(x - 1, y + 1);
   }
 
-  if (x < BOARD_WIDTH) {
+  if (x < width) {
     incrementIfNotMine(x + 1, y);
     if (y > 0)
       incrementIfNotMine(x + 1, y - 1);
-    if (y < BOARD_HEIGHT)
+    if (y < height)
       incrementIfNotMine(x + 1, y + 1);
   }
 
   if (y > 0)
     incrementIfNotMine(x, y - 1);
 
-  if (y < BOARD_HEIGHT)
+  if (y < height)
     incrementIfNotMine(x, y + 1);
 }
 
@@ -71,8 +66,11 @@ SDL_Surface *Board::loadTile(uint16_t *data) {
   return surface;
 }
 
-Board::Board(SDL_Surface *scr) {
+Board::Board(SDL_Surface *scr, uint8_t m, uint8_t w, uint8_t h) {
   screen = scr;
+  mineCount = m;
+  width = w;
+  height = h;
 
   SDL_PixelFormat *fmt = screen->format;
   backgroundColor = SDL_MapRGB(fmt, 184, 200, 222);
@@ -96,18 +94,18 @@ Board::Board(SDL_Surface *scr) {
   tileSurfaces.push_back(loadTile(image_tile_mine));
   tileSurfaces.push_back(loadTile(image_tile_flag));
 
-  boardRect.x = (screen->w - (BOARD_WIDTH * TILE_SIZE)) / 2;
-  boardRect.y = (screen->h - (BOARD_HEIGHT * TILE_SIZE)) / 2;
-  boardRect.w = BOARD_WIDTH * TILE_SIZE;
-  boardRect.h = BOARD_HEIGHT * TILE_SIZE;
+  boardRect.x = (screen->w - (width * TILE_SIZE)) / 2;
+  boardRect.y = (screen->h - (height * TILE_SIZE)) / 2;
+  boardRect.w = width * TILE_SIZE;
+  boardRect.h = height * TILE_SIZE;
 
   cursorRect.w = TILE_SIZE;
   cursorRect.h = TILE_SIZE;
 
-  verticalLines.reserve(BOARD_HEIGHT);
-  for (uint8_t i = 1; i < BOARD_HEIGHT; i++) {
+  verticalLines.reserve(height);
+  for (uint8_t i = 1; i < height; i++) {
     SDL_Rect line;
-    line.y = boardRect.y + ((boardRect.h / BOARD_HEIGHT) * i);
+    line.y = boardRect.y + ((boardRect.h / height) * i);
     line.w = boardRect.w;
     line.x = boardRect.x;
     line.h = 1;
@@ -115,10 +113,10 @@ Board::Board(SDL_Surface *scr) {
     verticalLines[i - 1] = line;
   }
 
-  horizontalLines.reserve(BOARD_WIDTH);
-  for (uint8_t i = 1; i < BOARD_WIDTH; i++) {
+  horizontalLines.reserve(width);
+  for (uint8_t i = 1; i < width; i++) {
     SDL_Rect line;
-    line.x = boardRect.x + ((boardRect.w / BOARD_WIDTH) * i);
+    line.x = boardRect.x + ((boardRect.w / width) * i);
     line.h = boardRect.h;
     line.y = boardRect.y;
     line.w = 1;
@@ -129,16 +127,16 @@ Board::Board(SDL_Surface *scr) {
   std::mt19937 rng(
       std::chrono::system_clock().now().time_since_epoch().count());
 
-  std::uniform_int_distribution<std::mt19937::result_type> widthDist(
-      0, BOARD_WIDTH - 1);
+  std::uniform_int_distribution<std::mt19937::result_type> widthDist(0,
+                                                                     width - 1);
   std::uniform_int_distribution<std::mt19937::result_type> heightDist(
-      0, BOARD_HEIGHT - 1);
+      0, height - 1);
 
   std::vector<Tile> row;
-  row.assign(BOARD_WIDTH, Tile());
-  tiles.assign(BOARD_HEIGHT, row);
+  row.assign(width, Tile());
+  tiles.assign(height, row);
 
-  for (uint8_t i = 0; i < MINE_COUNT; i++) {
+  for (uint8_t i = 0; i < mineCount; i++) {
     bool duplicate = true;
     uint8_t randX, randY;
 
@@ -205,12 +203,12 @@ void Board::draw() {
   imgRect.w = TILE_SIZE;
   imgRect.h = TILE_SIZE;
 
-  for (uint8_t i = 0; i < BOARD_HEIGHT; i++) {
-    for (uint8_t j = 0; j < BOARD_WIDTH; j++) {
+  for (uint8_t i = 0; i < height; i++) {
+    for (uint8_t j = 0; j < width; j++) {
       auto tile = tiles[i][j];
       if (state != BOARD_NORMAL || tile.revealed || tile.flagged) {
-        tileRect.x = (boardRect.x + ((boardRect.w / BOARD_WIDTH) * j));
-        tileRect.y = (boardRect.y + ((boardRect.h / BOARD_HEIGHT) * i));
+        tileRect.x = (boardRect.x + ((boardRect.w / width) * j));
+        tileRect.y = (boardRect.y + ((boardRect.h / height) * i));
 
         if (state == BOARD_LOSE &&
             ((tile.state == TILE_STATE_MINE && tile.revealed) ||
@@ -233,12 +231,12 @@ void Board::draw() {
   }
 
   // Draw vertical lines
-  for (uint8_t i = 0; i < BOARD_HEIGHT - 1; i++) {
+  for (uint8_t i = 0; i < height - 1; i++) {
     SDL_FillRect(screen, &verticalLines[i], lineColor);
   }
 
   // Draw horizontal lines
-  for (uint8_t i = 0; i < BOARD_WIDTH - 1; i++) {
+  for (uint8_t i = 0; i < width - 1; i++) {
     SDL_FillRect(screen, &horizontalLines[i], lineColor);
   }
 
@@ -247,8 +245,8 @@ void Board::draw() {
 
   if (state == BOARD_NORMAL) {
     // Draw the "cursor"
-    cursorRect.x = (boardRect.x + ((boardRect.w / BOARD_WIDTH) * cursorX));
-    cursorRect.y = (boardRect.y + ((boardRect.h / BOARD_HEIGHT) * cursorY));
+    cursorRect.x = (boardRect.x + ((boardRect.w / width) * cursorX));
+    cursorRect.y = (boardRect.y + ((boardRect.h / height) * cursorY));
     drawRectOutline(screen, cursorRect, 3, cursorColor);
   }
 }
@@ -259,7 +257,7 @@ void Board::moveLeft() {
   }
 }
 void Board::moveRight() {
-  if (cursorX < BOARD_WIDTH - 1) {
+  if (cursorX < width - 1) {
     cursorX++;
   }
 }
@@ -269,13 +267,13 @@ void Board::moveUp() {
   }
 }
 void Board::moveDown() {
-  if (cursorY < BOARD_HEIGHT - 1) {
+  if (cursorY < height - 1) {
     cursorY++;
   }
 }
 
 bool Board::revealTile(uint8_t x, uint8_t y) {
-  auto &tile = tiles[y][x];
+  Tile &tile = tiles[y][x];
 
   if (tile.revealed || tile.flagged)
     return false;
@@ -288,22 +286,22 @@ bool Board::revealTile(uint8_t x, uint8_t y) {
       revealTile(x - 1, y);
       if (y > 0)
         revealTile(x - 1, y - 1);
-      if (y < BOARD_HEIGHT)
+      if (y < height)
         revealTile(x - 1, y + 1);
     }
 
-    if (x < BOARD_WIDTH) {
+    if (x < width) {
       revealTile(x + 1, y);
       if (y > 0)
         revealTile(x + 1, y - 1);
-      if (y < BOARD_HEIGHT)
+      if (y < height)
         revealTile(x + 1, y + 1);
     }
 
     if (y > 0)
       revealTile(x, y - 1);
 
-    if (y < BOARD_HEIGHT)
+    if (y < height)
       revealTile(x, y + 1);
   }
 
@@ -313,7 +311,7 @@ bool Board::revealTile(uint8_t x, uint8_t y) {
 void Board::reveal() {
   if (revealTile(cursorX, cursorY)) {
     state = BOARD_LOSE;
-  } else if ((BOARD_WIDTH * BOARD_HEIGHT) - revealedTiles <= MINE_COUNT) {
+  } else if ((width * height) - revealedTiles <= mineCount) {
     // Win if we have only mines left
     state = BOARD_WIN;
   }

@@ -1,15 +1,22 @@
 #include "main.hpp"
 
+static const uint8_t MINE_COUNT = 16;
+static const uint8_t BOARD_WIDTH = 12;
+static const uint8_t BOARD_HEIGHT = 9;
+
 int main(void) {
   SDL_Surface *screen;
   SDL_Init(SDL_INIT_VIDEO);
   screen = SDL_SetVideoMode(320, 240, 16, SDL_SWSURFACE);
   SDL_ShowCursor(SDL_DISABLE);
 
-  Board board(screen);
+  Title title(screen);
+  title.run();
+
+  Board board(screen, MINE_COUNT, BOARD_WIDTH, BOARD_HEIGHT);
 
   bool done = false;
-  bool keyHeld = false;
+  bool keyHeld = true;
 
   // Draw the initial state
   board.draw();
@@ -93,6 +100,8 @@ int main(void) {
                  isKeyPressed(KEY_NSPIRE_SCRATCHPAD)) {
         break;
       }
+
+      SDL_Delay(10);
     }
   }
 
