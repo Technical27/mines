@@ -66,11 +66,22 @@ SDL_Surface *Board::loadTile(uint16_t *data) {
   return surface;
 }
 
-Board::Board(SDL_Surface *scr, uint8_t m, uint8_t w, uint8_t h) {
+std::tuple<uint8_t, uint8_t, uint8_t> Board::getSize(BoardSize size) {
+  switch (size) {
+  case BOARD_SIZE_SMALL:
+    return std::make_tuple(8, 8, 8);
+  case BOARD_SIZE_MEDIUM:
+    return std::make_tuple(9, 9, 15);
+  case BOARD_SIZE_LARGE:
+  default:
+    return std::make_tuple(12, 9, 20);
+  }
+}
+
+Board::Board(SDL_Surface *scr, BoardSize size) {
   screen = scr;
-  mineCount = m;
-  width = w;
-  height = h;
+
+  std::tie(width, height, mineCount) = getSize(size);
 
   SDL_PixelFormat *fmt = screen->format;
   backgroundColor = SDL_MapRGB(fmt, 184, 200, 222);
@@ -82,7 +93,7 @@ Board::Board(SDL_Surface *scr, uint8_t m, uint8_t w, uint8_t h) {
   revealedTileColor = SDL_MapRGB(fmt, 200, 200, 220);
   cursorColor = SDL_MapRGB(fmt, 100, 100, 100);
 
-  tileSurfaces.reserve(8);
+  tileSurfaces.reserve(10);
   tileSurfaces.push_back(loadTile(image_tile_1));
   tileSurfaces.push_back(loadTile(image_tile_2));
   tileSurfaces.push_back(loadTile(image_tile_3));
@@ -102,7 +113,7 @@ Board::Board(SDL_Surface *scr, uint8_t m, uint8_t w, uint8_t h) {
   cursorRect.w = TILE_SIZE;
   cursorRect.h = TILE_SIZE;
 
-  verticalLines.reserve(height);
+  verticalLines.reserve(height - 1);
   for (uint8_t i = 1; i < height; i++) {
     SDL_Rect line;
     line.y = boardRect.y + ((boardRect.h / height) * i);
@@ -113,7 +124,7 @@ Board::Board(SDL_Surface *scr, uint8_t m, uint8_t w, uint8_t h) {
     verticalLines[i - 1] = line;
   }
 
-  horizontalLines.reserve(width);
+  horizontalLines.reserve(width - 1);
   for (uint8_t i = 1; i < width; i++) {
     SDL_Rect line;
     line.x = boardRect.x + ((boardRect.w / width) * i);
@@ -137,21 +148,17 @@ Board::Board(SDL_Surface *scr, uint8_t m, uint8_t w, uint8_t h) {
   tiles.assign(height, row);
 
   for (uint8_t i = 0; i < mineCount; i++) {
-    bool duplicate = true;
     uint8_t randX, randY;
 
-    while (duplicate) {
+    do {
       randX = widthDist(rng);
       randY = heightDist(rng);
-      duplicate = tiles[randY][randX].state == TILE_STATE_MINE;
-    }
+    } while (tiles[randY][randX].state == TILE_STATE_MINE);
 
     tiles[randY][randX].state = TILE_STATE_MINE;
     markTiles(randX, randY);
   }
 }
-
-// Screen is 320x240
 
 static void drawRectOutline(SDL_Surface *screen, SDL_Rect rect, uint8_t w,
                             uint32_t color) {

@@ -1,3 +1,5 @@
+#pragma once
+
 extern unsigned short image_tile_1[];
 extern unsigned short image_tile_2[];
 extern unsigned short image_tile_3[];

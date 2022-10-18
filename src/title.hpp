@@ -1,6 +1,9 @@
 #include <SDL/SDL.h>
+#include <vector>
 
-enum TitleState { TITLE_INTRO, TITLE_SETTINGS };
+#include "board.hpp"
+
+#pragma once
 
 class Title {
 public:
@@ -12,16 +15,17 @@ public:
   ~Title();
 
   void draw();
-  void run();
+  BoardSize run();
 
 private:
   SDL_Surface *screen;
   nSDL_Font *font;
   uint32_t backgroundColor;
+  uint8_t difficulty = 1;
 
-  uint8_t line1Width;
-  uint8_t line2Width;
-  uint8_t line3Width;
+  const char *difficultyToName();
 
-  TitleState state = TITLE_INTRO;
+  BoardSize difficultyToSize();
+
+  std::vector<uint8_t> lineWidth;
 };

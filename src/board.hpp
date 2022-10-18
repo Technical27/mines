@@ -2,12 +2,17 @@
 #include <chrono>
 #include <os.h>
 #include <random>
+#include <tuple>
 #include <vector>
 
 #include "images.hpp"
 #include "tile.hpp"
 
+#pragma once
+
 enum BoardState { BOARD_NORMAL, BOARD_WIN, BOARD_LOSE };
+
+enum BoardSize { BOARD_SIZE_SMALL, BOARD_SIZE_MEDIUM, BOARD_SIZE_LARGE };
 
 class Board {
 private:
@@ -45,8 +50,10 @@ private:
 
   bool revealTile(uint8_t x, uint8_t y);
 
+  std::tuple<uint8_t, uint8_t, uint8_t> getSize(BoardSize size);
+
 public:
-  Board(SDL_Surface *scr, uint8_t mineCount, uint8_t w, uint8_t h);
+  Board(SDL_Surface *scr, BoardSize size);
   ~Board();
 
   Board(Board &&) = default;

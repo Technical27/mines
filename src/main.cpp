@@ -1,19 +1,16 @@
 #include "main.hpp"
 
-static const uint8_t MINE_COUNT = 16;
-static const uint8_t BOARD_WIDTH = 12;
-static const uint8_t BOARD_HEIGHT = 9;
-
 int main(void) {
   SDL_Surface *screen;
   SDL_Init(SDL_INIT_VIDEO);
+  // everything is hardcoded to this screen resolution
   screen = SDL_SetVideoMode(320, 240, 16, SDL_SWSURFACE);
   SDL_ShowCursor(SDL_DISABLE);
 
   Title title(screen);
-  title.run();
+  BoardSize size = title.run();
 
-  Board board(screen, MINE_COUNT, BOARD_WIDTH, BOARD_HEIGHT);
+  Board board(screen, size);
 
   bool done = false;
   bool keyHeld = true;

@@ -8,7 +8,7 @@ GENZEHN = genzehn
 
 GCCFLAGS = -Wall -W -pedantic -marm
 LDFLAGS =
-ZEHNFLAGS = --name "mines"
+ZEHNFLAGS = --compress --name "mines"
 
 ifeq ($(DEBUG),FALSE)
 	GCCFLAGS += -Os

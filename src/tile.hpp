@@ -1,3 +1,5 @@
+#pragma once
+
 enum TileState {
   TILE_STATE_1,
   TILE_STATE_2,
@@ -13,11 +15,7 @@ enum TileState {
 
 class Tile {
 public:
-  TileState state;
-  bool revealed;
-  bool flagged;
-  Tile() {
-    state = TILE_STATE_AIR;
-    revealed = false;
-  }
+  TileState state = TILE_STATE_AIR;
+  bool revealed = false;
+  bool flagged = false;
 };
