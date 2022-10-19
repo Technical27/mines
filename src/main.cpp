@@ -1,25 +1,15 @@
 #include "main.hpp"
 
-int main(void) {
-  SDL_Surface *screen;
-  SDL_Init(SDL_INIT_VIDEO);
-  // everything is hardcoded to this screen resolution
-  screen = SDL_SetVideoMode(320, 240, 16, SDL_SWSURFACE);
-  SDL_ShowCursor(SDL_DISABLE);
-
-  Title title(screen);
-  BoardSize size = title.run();
-
+bool run_board(SDL_Surface *screen, BoardSize size) {
   Board board(screen, size);
 
-  bool done = false;
   bool keyHeld = true;
 
   // Draw the initial state
   board.draw();
   SDL_Flip(screen);
 
-  while (board.state == BOARD_NORMAL && !done) {
+  while (board.state == BOARD_NORMAL) {
     // This horrible hack is necessary to not have keys repeat.
     if (keyHeld) {
       keyHeld =
@@ -36,7 +26,7 @@ int main(void) {
       SDL_Delay(25);
       continue;
     } else if (isKeyPressed(KEY_NSPIRE_ESC)) {
-      done = true;
+      break;
     } else if (isKeyPressed(KEY_NSPIRE_DEL) || isKeyPressed(KEY_NSPIRE_CLICK) ||
                isKeyPressed(KEY_NSPIRE_SCRATCHPAD)) {
       board.reveal();
@@ -92,13 +82,37 @@ int main(void) {
                   isKeyPressed(KEY_NSPIRE_DEL) ||
                   isKeyPressed(KEY_NSPIRE_CLICK) ||
                   isKeyPressed(KEY_NSPIRE_SCRATCHPAD);
-      } else if (isKeyPressed(KEY_NSPIRE_ESC) || isKeyPressed(KEY_NSPIRE_DEL) ||
+        SDL_Delay(25);
+        continue;
+      } else if (isKeyPressed(KEY_NSPIRE_DEL) ||
                  isKeyPressed(KEY_NSPIRE_CLICK) ||
                  isKeyPressed(KEY_NSPIRE_SCRATCHPAD)) {
-        break;
+        return false;
+      } else if (isKeyPressed(KEY_NSPIRE_ESC)) {
+        return true;
       }
 
-      SDL_Delay(10);
+      SDL_Delay(75);
+    }
+  }
+
+  return true;
+}
+
+int main(void) {
+  SDL_Surface *screen;
+  SDL_Init(SDL_INIT_VIDEO);
+  // everything is hardcoded to this screen resolution
+  screen = SDL_SetVideoMode(320, 240, 16, SDL_SWSURFACE);
+  SDL_ShowCursor(SDL_DISABLE);
+
+  std::unique_ptr<Title> title(new Title(screen));
+  bool done = false;
+  BoardSize size;
+  while (!done) {
+    std::tie(size, done) = title->run();
+    if (!done) {
+      done = run_board(screen, size);
     }
   }
 

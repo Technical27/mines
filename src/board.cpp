@@ -1,5 +1,6 @@
 #include "board.hpp"
 
+// All tiles are 24x24 pixels
 static const uint8_t TILE_SIZE = 24;
 
 void Board::incrementIfNotMine(uint8_t x, uint8_t y) {
@@ -217,12 +218,16 @@ void Board::draw() {
         tileRect.x = (boardRect.x + ((boardRect.w / width) * j));
         tileRect.y = (boardRect.y + ((boardRect.h / height) * i));
 
+        // Mark mistakes in red
+        // (flag when there was no mine and the mine that was hit)
         if (state == BOARD_LOSE &&
             ((tile.state == TILE_STATE_MINE && tile.revealed) ||
              (tile.flagged && tile.state != TILE_STATE_MINE))) {
           SDL_FillRect(screen, &tileRect, loseColor);
+          // Mark all the flagged mines in green
         } else if (state == BOARD_WIN && tile.state == TILE_STATE_MINE) {
           SDL_FillRect(screen, &tileRect, winColor);
+          // background for revealed tiles
         } else if (!tile.flagged) {
           SDL_FillRect(screen, &tileRect, revealedTileColor);
         }
@@ -252,8 +257,8 @@ void Board::draw() {
 
   if (state == BOARD_NORMAL) {
     // Draw the "cursor"
-    cursorRect.x = (boardRect.x + ((boardRect.w / width) * cursorX));
-    cursorRect.y = (boardRect.y + ((boardRect.h / height) * cursorY));
+    cursorRect.x = boardRect.x + (TILE_SIZE * cursorX);
+    cursorRect.y = boardRect.y + (TILE_SIZE * cursorY);
     drawRectOutline(screen, cursorRect, 3, cursorColor);
   }
 }

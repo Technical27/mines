@@ -15,7 +15,7 @@ public:
   ~Title();
 
   void draw();
-  BoardSize run();
+  std::tuple<BoardSize, bool> run();
 
 private:
   SDL_Surface *screen;

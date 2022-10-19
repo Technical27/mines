@@ -20,12 +20,12 @@ Title::Title(SDL_Surface *scr) {
 const char *Title::difficultyToName() {
   switch (difficulty) {
   case 0:
-    return " easy >";
+    return "   easy  >";
   case 1:
     return "< medium >";
   case 2:
   default:
-    return "< hard ";
+    return "<  hard   ";
   }
 }
 
@@ -55,21 +55,24 @@ void Title::draw() {
                   80, text);
 }
 
-BoardSize Title::run() {
+std::tuple<BoardSize, bool> Title::run() {
   draw();
   SDL_Flip(screen);
 
-  bool keyHeld = false;
+  bool keyHeld = true;
 
   while (true) {
     if (keyHeld) {
       keyHeld = isKeyPressed(KEY_NSPIRE_DEL) ||
                 isKeyPressed(KEY_NSPIRE_CLICK) ||
                 isKeyPressed(KEY_NSPIRE_SCRATCHPAD) ||
-                isKeyPressed(KEY_NSPIRE_LEFT) || isKeyPressed(KEY_NSPIRE_RIGHT);
+                isKeyPressed(KEY_NSPIRE_LEFT) ||
+                isKeyPressed(KEY_NSPIRE_RIGHT) || isKeyPressed(KEY_NSPIRE_ESC);
     } else if (isKeyPressed(KEY_NSPIRE_DEL) || isKeyPressed(KEY_NSPIRE_CLICK) ||
                isKeyPressed(KEY_NSPIRE_SCRATCHPAD)) {
       break;
+    } else if (isKeyPressed(KEY_NSPIRE_ESC)) {
+      return std::make_tuple(difficultyToSize(), true);
     } else if (isKeyPressed(KEY_NSPIRE_RIGHT)) {
       keyHeld = true;
       if (difficulty < 2) {
@@ -90,7 +93,7 @@ BoardSize Title::run() {
     SDL_Delay(75);
   }
 
-  return difficultyToSize();
+  return std::make_tuple(difficultyToSize(), false);
 }
 
 Title::~Title() { nSDL_FreeFont(font); }
