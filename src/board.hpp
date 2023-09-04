@@ -12,7 +12,12 @@
 
 enum BoardState { BOARD_NORMAL, BOARD_WIN, BOARD_LOSE };
 
-enum BoardSize { BOARD_SIZE_SMALL, BOARD_SIZE_MEDIUM, BOARD_SIZE_LARGE };
+enum BoardSize {
+  BOARD_SIZE_SMALL,
+  BOARD_SIZE_MEDIUM,
+  BOARD_SIZE_LARGE,
+  BOARD_SIZE_IMPOSSIBLE
+};
 
 class Board {
 private:

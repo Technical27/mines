@@ -69,6 +69,7 @@ SDL_Surface *Board::loadTile(uint16_t *data) {
 
 std::tuple<uint8_t, uint8_t, uint8_t> Board::getSize(BoardSize size) {
   switch (size) {
+  case BOARD_SIZE_IMPOSSIBLE:
   case BOARD_SIZE_SMALL:
     return std::make_tuple(8, 8, 8);
   case BOARD_SIZE_MEDIUM:
@@ -117,7 +118,7 @@ Board::Board(SDL_Surface *scr, BoardSize size) {
   verticalLines.reserve(height - 1);
   for (uint8_t i = 1; i < height; i++) {
     SDL_Rect line;
-    line.y = boardRect.y + ((boardRect.h / height) * i);
+    line.y = boardRect.y + TILE_SIZE * i;
     line.w = boardRect.w;
     line.x = boardRect.x;
     line.h = 1;
@@ -128,12 +129,21 @@ Board::Board(SDL_Surface *scr, BoardSize size) {
   horizontalLines.reserve(width - 1);
   for (uint8_t i = 1; i < width; i++) {
     SDL_Rect line;
-    line.x = boardRect.x + ((boardRect.w / width) * i);
+    line.x = boardRect.x + TILE_SIZE * i;
     line.h = boardRect.h;
     line.y = boardRect.y;
     line.w = 1;
 
     horizontalLines[i - 1] = line;
+  }
+
+  if (size == BOARD_SIZE_IMPOSSIBLE) {
+    std::vector<Tile> row;
+    Tile tile = Tile();
+    tile.state = TILE_STATE_MINE;
+    row.assign(width, tile);
+    tiles.assign(height, row);
+    return;
   }
 
   std::mt19937 rng(
@@ -215,15 +225,20 @@ void Board::draw() {
     for (uint8_t j = 0; j < width; j++) {
       auto tile = tiles[i][j];
       if (state != BOARD_NORMAL || tile.revealed || tile.flagged) {
-        tileRect.x = (boardRect.x + ((boardRect.w / width) * j));
-        tileRect.y = (boardRect.y + ((boardRect.h / height) * i));
+        tileRect.x = (boardRect.x + (TILE_SIZE * j));
+        tileRect.y = (boardRect.y + (TILE_SIZE * i));
 
         // Mark mistakes in red
         // (flag when there was no mine and the mine that was hit)
-        if (state == BOARD_LOSE &&
-            ((tile.state == TILE_STATE_MINE && tile.revealed) ||
-             (tile.flagged && tile.state != TILE_STATE_MINE))) {
-          SDL_FillRect(screen, &tileRect, loseColor);
+        if (state == BOARD_LOSE) {
+          if ((tile.state == TILE_STATE_MINE && tile.revealed) ||
+              (tile.flagged && tile.state != TILE_STATE_MINE)) {
+            SDL_FillRect(screen, &tileRect, loseColor);
+          } else if (tile.state == TILE_STATE_MINE && tile.flagged) {
+            SDL_FillRect(screen, &tileRect, winColor);
+          } else {
+            SDL_FillRect(screen, &tileRect, revealedTileColor);
+          }
           // Mark all the flagged mines in green
         } else if (state == BOARD_WIN && tile.state == TILE_STATE_MINE) {
           SDL_FillRect(screen, &tileRect, winColor);
@@ -294,21 +309,11 @@ bool Board::revealTile(uint8_t x, uint8_t y) {
   tile.revealed = true;
 
   if (tile.state == TILE_STATE_AIR) {
-    if (x > 0) {
+    if (x > 0)
       revealTile(x - 1, y);
-      if (y > 0)
-        revealTile(x - 1, y - 1);
-      if (y < height)
-        revealTile(x - 1, y + 1);
-    }
 
-    if (x < width) {
+    if (x < width)
       revealTile(x + 1, y);
-      if (y > 0)
-        revealTile(x + 1, y - 1);
-      if (y < height)
-        revealTile(x + 1, y + 1);
-    }
 
     if (y > 0)
       revealTile(x, y - 1);

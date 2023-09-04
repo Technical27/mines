@@ -20,6 +20,7 @@ Title::Title(SDL_Surface *scr) {
 const char *Title::difficultyToName() {
   switch (difficulty) {
   case 0:
+  case 3:
     return "   easy  >";
   case 1:
     return "< medium >";
@@ -35,6 +36,8 @@ BoardSize Title::difficultyToSize() {
     return BOARD_SIZE_SMALL;
   case 1:
     return BOARD_SIZE_MEDIUM;
+  case 3:
+    return BOARD_SIZE_IMPOSSIBLE;
   case 2:
   default:
     return BOARD_SIZE_LARGE;
@@ -56,6 +59,10 @@ void Title::draw() {
 }
 
 std::tuple<BoardSize, bool> Title::run() {
+  if (difficulty == 3) {
+    difficulty = 0;
+  }
+
   draw();
   SDL_Flip(screen);
 
@@ -63,11 +70,11 @@ std::tuple<BoardSize, bool> Title::run() {
 
   while (true) {
     if (keyHeld) {
-      keyHeld = isKeyPressed(KEY_NSPIRE_DEL) ||
-                isKeyPressed(KEY_NSPIRE_CLICK) ||
-                isKeyPressed(KEY_NSPIRE_SCRATCHPAD) ||
-                isKeyPressed(KEY_NSPIRE_LEFT) ||
-                isKeyPressed(KEY_NSPIRE_RIGHT) || isKeyPressed(KEY_NSPIRE_ESC);
+      keyHeld =
+          isKeyPressed(KEY_NSPIRE_DEL) || isKeyPressed(KEY_NSPIRE_CLICK) ||
+          isKeyPressed(KEY_NSPIRE_SCRATCHPAD) ||
+          isKeyPressed(KEY_NSPIRE_LEFT) || isKeyPressed(KEY_NSPIRE_RIGHT) ||
+          isKeyPressed(KEY_NSPIRE_ESC) || isKeyPressed(KEY_NSPIRE_J);
     } else if (isKeyPressed(KEY_NSPIRE_DEL) || isKeyPressed(KEY_NSPIRE_CLICK) ||
                isKeyPressed(KEY_NSPIRE_SCRATCHPAD)) {
       break;
@@ -75,14 +82,19 @@ std::tuple<BoardSize, bool> Title::run() {
       return std::make_tuple(difficultyToSize(), true);
     } else if (isKeyPressed(KEY_NSPIRE_RIGHT)) {
       keyHeld = true;
-      if (difficulty < 2) {
+      if (difficulty == 3) {
+        difficulty = 1;
+      } else if (difficulty < 2) {
         difficulty++;
       }
     } else if (isKeyPressed(KEY_NSPIRE_LEFT)) {
       keyHeld = true;
-      if (difficulty > 0) {
+      if (difficulty > 0 && difficulty != 3) {
         difficulty--;
       }
+    } else if (isKeyPressed(KEY_NSPIRE_J)) {
+      keyHeld = true;
+      difficulty = 3;
     } else {
       SDL_Delay(25);
       continue;
