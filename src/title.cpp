@@ -50,7 +50,7 @@ void Title::draw() {
     nSDL_DrawString(screen, font, lineWidth[i], i * 20 + 20, text[i]);
   }
 
-  char text[22];
+  char text[23];
   sprintf(text, "difficulty: %s", difficultyToName());
 
   uint8_t half = (screen->w / 2);
